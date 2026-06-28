@@ -1,1 +1,471 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Tracking & Review</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --font-body: 'DM Sans', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+            --radius: 12px;
+            --accent: #e07b39;
+            --accent2: #3a7bd5;
+            --success: #2eaa7e;
+            --warning: #d4922b;
+            --danger: #d94f4f;
+        }
+        [data-theme="light"] {
+            --bg: #f4f6f9;
+            --surface: #ffffff;
+            --surface2: #f0f2f6;
+            --border: rgba(0,0,0,0.06);
+            --text: #1a2236;
+            --text-sub: #5a6880;
+        }
+        [data-theme="dark"] {
+            --bg: #0d1117;
+            --surface: #161b26;
+            --surface2: #1c2333;
+            --border: rgba(255,255,255,0.08);
+            --text: #e3e8f0;
+            --text-sub: #8b96ab;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: var(--font-body);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .app-header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .logo-area { display: flex; align-items: center; gap: 12px; }
+        .logo-icon {
+            background: var(--accent);
+            color: white;
+            width: 38px; height: 38px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem;
+        }
+        .title h1 { font-size: 1.6rem; }
+        .title span { font-size: 0.7rem; font-family: var(--font-mono); color: var(--text-sub); }
+        .header-actions { display: flex; align-items: center; gap: 16px; }
+        .theme-toggle {
+            background: var(--surface2);
+            border-radius: 20px; padding: 3px;
+            display: flex; border: 1px solid var(--border);
+        }
+        .theme-opt {
+            padding: 5px 12px; font-size: 0.7rem; font-weight: 600;
+            border-radius: 16px; cursor: pointer; color: var(--text-sub);
+        }
+        .theme-opt.active { background: var(--surface); color: var(--text); }
+        .btn {
+            padding: 8px 18px; border-radius: 20px; font-weight: 600;
+            border: none; cursor: pointer; background: var(--accent); color: white;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .main-layout { display: flex; flex: 1; overflow: hidden; }
+        .sidebar {
+            width: 300px; background: var(--surface);
+            border-right: 1px solid var(--border); padding: 20px;
+            display: flex; flex-direction: column; gap: 24px; overflow-y: auto;
+        }
+        .upload-card {
+            background: var(--surface2); border-radius: var(--radius);
+            padding: 18px; border: 1px solid var(--border);
+        }
+        .form-group { margin-bottom: 14px; }
+        .form-label {
+            font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.05em; color: var(--text-sub);
+            margin-bottom: 5px; font-family: var(--font-mono);
+        }
+        .form-input, .form-select, .form-textarea {
+            width: 100%; padding: 10px 12px;
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: 8px; color: var(--text);
+            font-family: var(--font-body); font-size: 0.85rem; outline: none;
+        }
+        .form-input:focus, .form-select:focus { border-color: var(--accent); }
+        .file-upload-area {
+            border: 2px dashed var(--border); border-radius: var(--radius);
+            padding: 14px; text-align: center; cursor: pointer;
+            background: var(--bg); transition: 0.2s;
+        }
+        .file-upload-area:hover { border-color: var(--accent); }
+        .upload-icon { font-size: 1.5rem; color: var(--accent); }
+        .btn-upload { width: 100%; margin-top: 12px; justify-content: center; }
+        .dashboard {
+            flex: 1; padding: 20px 28px; overflow-y: auto;
+            display: flex; flex-direction: column; gap: 18px;
+        }
+        .stats-row { display: flex; gap: 16px; flex-wrap: wrap; }
+        .stat-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 16px 20px;
+            flex: 1; min-width: 130px; display: flex; align-items: center; gap: 12px;
+        }
+        .stat-icon { font-size: 1.8rem; color: var(--accent); }
+        .table-container {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); overflow: hidden;
+        }
+        .table-header {
+            padding: 14px 20px; border-bottom: 1px solid var(--border);
+            font-weight: 600; display: flex; justify-content: space-between;
+        }
+        .table-scroll { overflow-x: auto; max-height: 500px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        th {
+            background: var(--surface2); padding: 12px 16px; text-align: left;
+            font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-sub);
+            text-transform: uppercase; position: sticky; top: 0;
+        }
+        td { padding: 10px 16px; border-bottom: 1px solid var(--border); }
+        .badge {
+            padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600;
+            background: rgba(224,123,57,0.1); color: var(--accent); display: inline-block;
+        }
+        .status-ok { background: rgba(46,170,126,0.1); color: var(--success); }
+        .status-pending { background: rgba(212,146,43,0.1); color: var(--warning); }
+        .comment-input {
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: 6px; padding: 6px 10px; color: var(--text);
+            width: 120px; font-size: 0.75rem;
+        }
+        .icon-btn {
+            background: none; border: none; cursor: pointer;
+            color: var(--text-sub); margin: 0 4px; font-size: 1rem;
+        }
+        .icon-btn:hover { color: var(--accent); }
+        .file-link { color: var(--accent2); text-decoration: none; font-weight: 500; }
+        @media (max-width: 800px) {
+            .main-layout { flex-direction: column; }
+            .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
+        }
+    </style>
+</head>
+<body data-theme="light">
+<header class="app-header">
+    <div class="logo-area">
+        <div class="logo-icon"><i class="fas fa-folder-tree"></i></div>
+        <div class="title">
+            <h1>FileTrack Pro</h1>
+            <span>Review & Approval System</span>
+        </div>
+    </div>
+    <div class="header-actions">
+        <div class="theme-toggle" id="themeToggle">
+            <div class="theme-opt active" data-t="light"><i class="fas fa-sun"></i> Light</div>
+            <div class="theme-opt" data-t="dark"><i class="fas fa-moon"></i> Dark</div>
+        </div>
+        <button class="btn btn-outline" onclick="loadSheetData()"><i class="fas fa-sync-alt"></i> Refresh</button>
+    </div>
+</header>
 
+<div class="main-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="upload-card">
+            <h3 style="margin-bottom: 16px;"><i class="fas fa-cloud-upload-alt" style="color:var(--accent);"></i> Upload New File</h3>
+            <div class="form-group">
+                <div class="form-label">Time Sheet No. *</div>
+                <input class="form-input" id="timesheetNo" placeholder="e.g., TS-2401">
+            </div>
+            <div class="form-group">
+                <div class="form-label">WI Number *</div>
+                <input class="form-input" id="wiNumber" placeholder="WI-2024-001">
+            </div>
+            <div class="form-group">
+                <div class="form-label">Discipline</div>
+                <select class="form-select" id="discipline">
+                    <option>Piping & Mechanical</option>
+                    <option>Electrical</option>
+                    <option>Civil</option>
+                    <option>Instrumentation</option>
+                    <option>OHL</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <div class="form-label">Location *</div>
+                <select class="form-select" id="location">
+                    <option value="SAF">SAF</option>
+                    <option value="WL">WL</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <div class="form-label">Description</div>
+                <textarea class="form-textarea" id="description" rows="2" placeholder="Brief description..."></textarea>
+            </div>
+            <div class="form-group">
+                <div class="form-label">File *</div>
+                <div class="file-upload-area" id="dropArea">
+                    <i class="fas fa-file-pdf upload-icon"></i>
+                    <p style="font-size:0.8rem; margin:6px 0;" id="fileNameDisplay">Click or drop file</p>
+                    <input type="file" id="fileInput" hidden>
+                </div>
+            </div>
+            <button class="btn btn-upload" id="uploadBtn"><i class="fas fa-upload"></i> Upload & Store</button>
+            <p style="font-size:0.7rem; color:var(--text-sub); margin-top:10px;">
+                <i class="fas fa-info-circle"></i> File saved in Drive folder: <strong>TimeSheet-{No}</strong>
+            </p>
+        </div>
+    </aside>
+
+    <!-- Dashboard -->
+    <main class="dashboard">
+        <div class="stats-row" id="statsRow">
+            <div class="stat-card"><span class="stat-icon"><i class="fas fa-file-alt"></i></span><div><strong id="totalFiles">0</strong><br><small>Total Files</small></div></div>
+            <div class="stat-card"><span class="stat-icon"><i class="fas fa-check-circle"></i></span><div><strong id="approvedCount">0</strong><br><small>Approved (OK)</small></div></div>
+            <div class="stat-card"><span class="stat-icon"><i class="fas fa-comments"></i></span><div><strong id="pendingReview">0</strong><br><small>Pending Review</small></div></div>
+        </div>
+
+        <div class="table-container">
+            <div class="table-header">
+                <span><i class="fas fa-list-ul"></i> Review Dashboard</span>
+                <span class="badge" id="recordCount">0 entries</span>
+            </div>
+            <div class="table-scroll">
+                <table id="filesTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th><th>Time Sheet</th><th>WI No.</th><th>Discipline</th>
+                            <th>Location</th><th>Description</th><th>File</th><th>Status</th>
+                            <th>Discipline Eng</th><th>Project Eng</th><th>QS</th><th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    // ⚠️ REPLACE WITH YOUR DEPLOYED WEB APP URL
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwXqYH0JqL8d9vQN7Vx0UjK2fZ3LmRn5PbT6sQhYw/exec';
+    
+    // Published CSV URL of your Google Sheet (for reading data)
+    const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRY6oM4ZvJDd8-yDRTm4rimO9hG4tMEVB0NaD7gt5_xiW09U3sSZuOePGoRAVlgUkocC5VdZeZdLU7b/pub?gid=0&single=true&output=csv';
+
+    let fileRecords = [];
+
+    // Theme
+    const themeToggle = document.getElementById('themeToggle');
+    let currentTheme = localStorage.getItem('filetrack-theme') || 'light';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    themeToggle.querySelectorAll('.theme-opt').forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.t === currentTheme);
+        opt.addEventListener('click', () => {
+            const t = opt.dataset.t;
+            document.documentElement.setAttribute('data-theme', t);
+            localStorage.setItem('filetrack-theme', t);
+            themeToggle.querySelectorAll('.theme-opt').forEach(o => o.classList.remove('active'));
+            opt.classList.add('active');
+        });
+    });
+
+    // File input
+    const dropArea = document.getElementById('dropArea');
+    const fileInput = document.getElementById('fileInput');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+    dropArea.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length) fileNameDisplay.textContent = fileInput.files[0].name;
+    });
+    dropArea.addEventListener('dragover', e => e.preventDefault());
+    dropArea.addEventListener('drop', e => {
+        e.preventDefault();
+        if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            fileNameDisplay.textContent = e.dataTransfer.files[0].name;
+        }
+    });
+
+    // Upload
+    document.getElementById('uploadBtn').addEventListener('click', async () => {
+        const file = fileInput.files[0];
+        const timesheet = document.getElementById('timesheetNo').value.trim();
+        const wi = document.getElementById('wiNumber').value.trim();
+        const discipline = document.getElementById('discipline').value;
+        const location = document.getElementById('location').value;
+        const description = document.getElementById('description').value.trim();
+
+        if (!file || !timesheet || !wi || !location) {
+            alert('Please fill all required fields: Time Sheet, WI, Location, File');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('timesheet', timesheet);
+        formData.append('wi', wi);
+        formData.append('discipline', discipline);
+        formData.append('location', location);
+        formData.append('description', description);
+        formData.append('date', new Date().toISOString().split('T')[0]);
+        formData.append('action', 'upload');
+
+        try {
+            document.getElementById('uploadBtn').disabled = true;
+            document.getElementById('uploadBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+            const resp = await fetch(SCRIPT_URL, { method: 'POST', body: formData });
+            const result = await resp.json();
+            if (result.status === 'success') {
+                alert('File uploaded successfully!');
+                fileInput.value = '';
+                fileNameDisplay.textContent = 'Click or drop file';
+                document.getElementById('timesheetNo').value = '';
+                document.getElementById('wiNumber').value = '';
+                document.getElementById('description').value = '';
+                await loadSheetData();
+            } else {
+                alert('Upload failed: ' + (result.message || 'Unknown error'));
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Network error. Check console or script URL.');
+        } finally {
+            document.getElementById('uploadBtn').disabled = false;
+            document.getElementById('uploadBtn').innerHTML = '<i class="fas fa-upload"></i> Upload & Store';
+        }
+    });
+
+    // Load data from published CSV
+    async function loadSheetData() {
+        try {
+            const res = await fetch(SHEET_CSV_URL + '&t=' + Date.now());
+            const csv = await res.text();
+            fileRecords = parseCSV(csv);
+            renderTable();
+            updateStats();
+        } catch (e) {
+            console.warn('Could not load sheet data. Using empty list.', e);
+            fileRecords = [];
+            renderTable();
+            updateStats();
+        }
+    }
+
+    function parseCSV(str) {
+        const rows = [];
+        let cur = '', inQ = false;
+        const lines = [];
+        for (let i = 0; i < str.length; i++) {
+            const ch = str[i];
+            if (ch === '"') inQ = !inQ;
+            else if (ch === '\n' && !inQ) { lines.push(cur); cur = ''; }
+            else cur += ch;
+        }
+        if (cur) lines.push(cur);
+        if (lines.length < 2) return [];
+        const headers = lines[0].split(',').map(h => h.trim());
+        for (let i = 1; i < lines.length; i++) {
+            const vals = lines[i].split(',').map(v => v.trim());
+            const obj = {};
+            headers.forEach((h, idx) => obj[h] = vals[idx] || '');
+            if (Object.values(obj).some(v => v)) rows.push(obj);
+        }
+        return rows;
+    }
+
+    function updateStats() {
+        document.getElementById('totalFiles').textContent = fileRecords.length;
+        const approved = fileRecords.filter(r => r.Status === 'OK').length;
+        document.getElementById('approvedCount').textContent = approved;
+        document.getElementById('pendingReview').textContent = fileRecords.length - approved;
+        document.getElementById('recordCount').textContent = fileRecords.length + ' entries';
+    }
+
+    // Save comment
+    async function updateComment(wi, field, value) {
+        const formData = new FormData();
+        formData.append('action', 'updateComment');
+        formData.append('wi', wi);
+        formData.append('field', field);
+        formData.append('value', value);
+        await fetch(SCRIPT_URL, { method: 'POST', body: formData });
+    }
+
+    async function setStatusOK(wi) {
+        const formData = new FormData();
+        formData.append('action', 'setStatus');
+        formData.append('wi', wi);
+        formData.append('status', 'OK');
+        await fetch(SCRIPT_URL, { method: 'POST', body: formData });
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('tableBody');
+        if (!fileRecords.length) {
+            tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:30px;">No files uploaded yet.</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = fileRecords.map(rec => {
+            const wi = rec['WI No.'] || '';
+            const ts = rec['TimeSheet'] || '';
+            const disc = rec['Discipline'] || '';
+            const loc = rec['Location'] || '';
+            const desc = rec['Description'] || '';
+            const date = rec['Date'] || '';
+            const fileUrl = rec['FileURL'] || '#';
+            const status = rec['Status'] || 'Pending';
+            const de = rec['DisciplineEngComment'] || '';
+            const pe = rec['ProjectEngComment'] || '';
+            const qs = rec['QSComment'] || '';
+            const statusClass = status === 'OK' ? 'status-ok' : 'status-pending';
+            return `
+            <tr data-wi="${wi}">
+                <td>${date}</td>
+                <td><strong>${ts}</strong></td>
+                <td><strong>${wi}</strong></td>
+                <td>${disc}</td>
+                <td>${loc}</td>
+                <td style="max-width:120px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${desc}</td>
+                <td><a href="${fileUrl}" target="_blank" class="file-link"><i class="fas fa-external-link-alt"></i> View</a></td>
+                <td><span class="badge ${statusClass}">${status}</span></td>
+                <td><input class="comment-input" value="${de}" placeholder="Comment..." onchange="handleComment('${wi}', 'DisciplineEngComment', this.value)"></td>
+                <td><input class="comment-input" value="${pe}" placeholder="Comment..." onchange="handleComment('${wi}', 'ProjectEngComment', this.value)"></td>
+                <td><input class="comment-input" value="${qs}" placeholder="Comment..." onchange="handleComment('${wi}', 'QSComment', this.value)"></td>
+                <td><button class="icon-btn" onclick="markAsOK('${wi}')"><i class="fas fa-check-circle" style="color:var(--success);"></i></button></td>
+            </tr>`;
+        }).join('');
+    }
+
+    // Global handlers
+    window.handleComment = function(wi, field, value) {
+        const rec = fileRecords.find(r => r['WI No.'] === wi);
+        if (rec) rec[field] = value;
+        updateComment(wi, field, value);
+    };
+    window.markAsOK = async function(wi) {
+        const rec = fileRecords.find(r => r['WI No.'] === wi);
+        if (rec) rec.Status = 'OK';
+        await setStatusOK(wi);
+        renderTable();
+        updateStats();
+    };
+    window.loadSheetData = loadSheetData;
+
+    // Initial load
+    loadSheetData();
+</script>
+</body>
+</html>
